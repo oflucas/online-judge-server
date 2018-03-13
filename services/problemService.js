@@ -1,36 +1,44 @@
-var problems = [
-  {id: 1, name: "first", desc: "dddd", difficulty: "easy"},
-  {id: 2, name: "second", desc: "dddd", difficulty: "easy"},
-  {id: 3, name: "third", desc: "dddd", difficulty: "medium"},
-  {id: 4, name: "fourth", desc: "dddd", difficulty: "easy"},
-  {id: 5, name: "fifth", desc: "dddd", difficulty: "hard"},
-  {id: 6, name: "sixth", desc: "dddd", difficulty: "hard"},
-  {id: 7, name: "seventh", desc: "dddd", difficulty: "super"}
-];
+var ProblemModel = require("../models/problemModel");
+// simple use case: find, findOne, count({xxx}), where {xxx} is condition
 
 var getProblems = function() {
   return new Promise((resolve, reject) => {
-    resolve(problems);
+    ProblemModel.find({}, function(err, problems) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(problems);
+      }
+    });
   });
 }
 
 var getProblem = function(id) {
   return new Promise((resolve, reject) => {
-    resolve(
-      problems.find(problem => problem.id === id)
-    );
+    ProblemModel.findOne({id: id}, function(err, problem) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(problem);
+      }
+    });
   });
 }
 
 var addProblem = function(newProblem) {
   return new Promise((resolve, reject) => {
-    if (problems.find(problem => problem.name === newProblem.name)) {
-      reject("Problem already exists");
-    } else {
-      newProblem.id = problems.length + 1;
-      problems.push(newProblem);
-      resolve(newProblem);
-    }
+    ProblemModel.findOne({name: newProblem.name}, function(err, problem) {
+      if (problem) {
+        reject("Problem name already exists");
+      } else {
+        ProblemModel.count({}, function(err, num) {
+          newProblem.id = num + 1;
+          var mongoProblem = new ProblemModel(newProblem);
+          mongoProblem.save();
+          resolve(newProblem);
+        });
+      }
+    });
   });
 }
 
