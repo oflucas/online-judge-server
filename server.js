@@ -15,4 +15,12 @@ app.use('/', indexRouter)
 
 app.use("/api/v1", restRouter);
 
+// handle refresh and direct webpage address other than '/'
+app.use(function(req, res) {
+  // send index.html to start client side
+  res.sendFile("index.html", {
+    root: path.join(__dirname, '../public/')
+  });
+});
+
 app.listen(3000, () => console.log('Example app listening on port 3000!'))
