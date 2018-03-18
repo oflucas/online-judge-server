@@ -17,22 +17,33 @@ module.exports = function(io) {
         }
         collaborations[sessionId]['participants'].push(socket.id);
 
-
-        // socket event listeners
+        // socket event listeners on 'change' event
         socket.on('change', delta => {
-            console.log( "change " + socketIdToSessionId[socket.id] + " " + delta ) ;
-            let sessionId = socketIdToSessionId[socket.id];
-
-            if (sessionId in collaborations) {
-              let participants = collaborations[sessionId]['participants'];
-              for (let i = 0; i < participants.length; i++) {
-                if (socket.id != participants[i]) {
-                  io.to(participants[i]).emit('change', delta);
-                }
-              }
-            } else {
-              console.warn('could not tie socket.id to any collaboration');
-            }
+          forwardEvents(socket.id, 'change', delta);
         });
+
+        // socket event listeners on 'cursorMove' event
+
+        socket.on('cursorMove', cursor => {
+          cursor = JSON.parse(cursor);
+          // to know whose cursor changes, we insert a 'socketId' key in it
+          cursor['socketId'] = socket.id;
+          forwardEvents(socket.id, 'cursorMove', JSON.stringify(cursor));
+        });
+
+        function forwardEvents(socketId, eventName, dataString) {
+          console.log( eventName + socketIdToSessionId[socketId] + " " + dataString ) ;
+          let sessionId = socketIdToSessionId[socketId];
+          if (sessionId in collaborations) {
+            let participants = collaborations[sessionId]['participants'];
+            for (let i = 0; i < participants.length; i++) {
+              if (socket.id != participants[i]) {
+                io.to(participants[i]).emit(eventName, dataString);
+              }
+            }
+          } else {
+            console.warn('could not tie socket.id to any collaboration');
+          }
+        }
       });
 }
