@@ -10,8 +10,8 @@ service redis_6379 start
 npm install
 nodemon server.js &
 
-# In online-judge-client/
-cd ../online-judge-client
+# In online-judge-client
+cd ../online-judge-cli
 npm install
 ng build --watch
 
